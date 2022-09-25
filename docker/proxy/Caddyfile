@@ -53,7 +53,7 @@
 	reverse_proxy api.cs3710.lab:5000
 }
 
-metrics.cs3710.kerneltrick.org {
+:3000, metrics.cs3710.kerneltrick.org {
     reverse_proxy graphs.cs3710.lab:3000
 }
 
