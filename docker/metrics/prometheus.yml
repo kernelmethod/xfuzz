@@ -5,4 +5,4 @@ scrape_configs:
   - job_name: caddy
     scrape_interval: 2s
     static_configs:
-      - targets: ["proxy.cs3710.lab:2018"]
+      - targets: ["proxy.xfuzz.lab:2018"]
