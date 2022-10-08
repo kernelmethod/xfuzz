@@ -1,18 +1,50 @@
 # Settings for the test server.
 
 import random
+import hashlib
 import hmac
+import os
 import secrets
 import xfuzz._typing as _t
+from math import ceil
 from pydantic import BaseSettings, Field
 from test.wordlists import get_common, get_subdomains
 
 
-def create_token(key: bytes, msg: str) -> bytes:
-    """Generate a new cryptographically random token using HMAC-SHA256."""
+hash_len: int = 32
 
-    msg = msg.encode("utf-8")
-    return hmac.new(key, msg=msg, digestmod="sha256").digest()
+
+def hmac_sha256(key: bytes, data: bytes):
+    return hmac.new(key, data, hashlib.sha256).digest()
+
+
+def hkdf(key: str, info: str, salt: str = "", length: int = 32) -> bytes:
+    """Key derivation function"""
+
+    if len(salt) == 0:
+        salt = bytes([0] * length)
+    else:
+        salt = salt.encode("utf-8")
+
+    prk = hmac_sha256(salt, key.encode("utf-8"))
+    t = b""
+    okm = b""
+    info = info.encode("utf-8")
+
+    for i in range(ceil(length / hash_len)):
+        t = hmac_sha256(prk, t + info + bytes([i + 1]))
+        okm += t
+    return okm[:length]
+
+
+def generate_key() -> str:
+    """Generate a random HKDF key for testing."""
+
+    key = os.getenv("XFUZZ_TEST_KEY")
+    if key is None:
+        return secrets.token_urlsafe()
+
+    return key
 
 
 class Settings(BaseSettings):
@@ -29,10 +61,10 @@ class Settings(BaseSettings):
     wordlist: _t.List[str] = Field(default_factory=get_common)
 
     # A secret token that can be used to generate additional secret tokens
-    key: bytes = Field(default_factory=secrets.token_bytes)
+    key: str = Field(default_factory=generate_key)
 
     def create_token(self, msg: str) -> bytes:
-        return create_token(self.key, msg)
+        return hkdf(self.key, msg)
 
     def create_token_int(self, msg: str) -> int:
         return int.from_bytes(self.create_token(msg), "little")
