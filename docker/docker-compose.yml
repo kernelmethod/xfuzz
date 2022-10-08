@@ -10,12 +10,19 @@ services:
       context: ..
       dockerfile: docker/xfuzz/Dockerfile
     hostname: api.xfuzz.lab
+    environment:
+      BASE_DOMAIN: "${BASE_DOMAIN:-xfuzz.lab}"
     networks:
       - xfuzztestnet
-    volumes:
-      - ../xfuzz:/opt/xfuzz/xfuzz:ro
-      - ../test:/opt/xfuzz/test:ro
     restart: on-failure
+
+  xfuzz-client:
+    image: xfuzz/xfuzz:latest
+    hostname: client.xfuzz.lab
+    networks:
+      - xfuzztestnet
+    command: [ "true" ]
+    restart: "no"
 
   # Proxy in front of the API server. The proxy uses tc to shape traffic and to
   # add some latency between the client and the testing server.
@@ -27,8 +34,6 @@ services:
     volumes:
       - caddy_data:/data:rw
       - caddy_config:/config:rw
-      - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./proxy/html:/var/www/html:ro
     networks:
       outnet:
         priority: 1000

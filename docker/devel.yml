@@ -1,0 +1,14 @@
+# Compose override file for development
+
+version: "3"
+services:
+
+  xfuzz:
+    volumes:
+      - ../xfuzz:/opt/xfuzz/xfuzz:ro
+      - ../test:/opt/xfuzz/test:ro
+
+  proxy:
+    volumes:
+      - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./proxy/html:/var/www/html:ro
