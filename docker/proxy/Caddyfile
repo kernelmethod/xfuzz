@@ -7,11 +7,12 @@
 # sure your domain's A/AAAA DNS records are properly pointed to
 # this machine's public IP, then replace ":80" below with your
 # domain name.
-
 {
-    servers {
-        metrics
-    }
+	auto_https off
+
+	servers {
+		metrics
+	}
 }
 
 (headers) {
@@ -46,15 +47,17 @@
 }
 
 # Default port 80 server
-:80, :443, cs3710.kerneltrick.org {
+:80, :443, {$BASE_DOMAIN} {
 	import proxyheaders
+	log
 
 	redir / /docs
-	reverse_proxy api.cs3710.lab:5000
+	reverse_proxy api.xfuzz.lab:5000
 }
 
-metrics.cs3710.kerneltrick.org {
-    reverse_proxy graphs.cs3710.lab:3000
+:3000, metrics.{$BASE_DOMAIN} {
+	import proxyheaders
+	reverse_proxy graphs.xfuzz.lab:3000
 }
 
 # Enable metrics on port 2018

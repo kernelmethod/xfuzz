@@ -7,4 +7,5 @@ COPY entrypoint.sh /entrypoint.sh
 RUN chmod u+rx,go-w /entrypoint.sh && \
         mkdir -p /var/www/html
 
+COPY Caddyfile /etc/caddy/Caddyfile
 CMD [ "/entrypoint.sh" ]

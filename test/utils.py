@@ -1,4 +1,6 @@
 import asyncio
+import hashlib
+import hmac
 import platform
 import pytest
 import shlex
@@ -76,3 +78,41 @@ async def fuzz_proc(fuzz_args, timeout: float = 60):
                 f"{type(ex).__name__} exception raised after waiting for fuzzer process to terminate.\n"
                 f"Command: `{fuzz_args.command}`"
             )
+
+
+def hkdf_prk(ikm: bytes, salt: bytes, hash=hashlib.sha256) -> bytes:
+    return hmac.new(salt, ikm, hash).digest()
+
+
+def hkdf(
+    ikm: bytes,
+    info: bytes,
+    salt: _t.Optional[bytes] = None,
+    length: int = 32,
+    hash=hashlib.sha256,
+) -> bytes:
+    """Use the Hash-Based Key Derivation Function (HKDF) to generate a new
+    domain-specific cryptographically secure random key.
+
+    Sources:
+    - IETF RFC 5869: https://www.rfc-editor.org/rfc/rfc5869
+    - "Cryptographic Extraction and Key Derivation: The HKDF Scheme" (Kraczyk 2010)
+    """
+
+    hash_length = hash().digest_size
+
+    salt = salt if salt is not None else b"\x00" * length
+    hmac_hash = lambda key, msg: hmac.new(key, msg, hash).digest()
+
+    # Extract (§2.2)
+    prk = hkdf_prk(ikm, salt)
+
+    # Expand (§2.3)
+    N = (length - 1) // hash_length + 1
+    okm = T = b""
+    for i in range(N):
+        msg = T + info + ((i + 1) % 256).to_bytes(1, "big")
+        T = hmac_hash(prk, msg)
+        okm += T
+
+    return okm[:length]
