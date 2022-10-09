@@ -1,0 +1,6 @@
+# Compose override for enabling AppArmor profiles on the containers
+
+services:
+  xfuzz-client:
+    security_opt:
+      - apparmor=xfuzz

@@ -49,12 +49,14 @@
 # Default port 80 server
 :80, :443, {$BASE_DOMAIN} {
 	import proxyheaders
+	log
 
 	redir / /docs
 	reverse_proxy api.xfuzz.lab:5000
 }
 
 :3000, metrics.{$BASE_DOMAIN} {
+	import proxyheaders
 	reverse_proxy graphs.xfuzz.lab:3000
 }
 
