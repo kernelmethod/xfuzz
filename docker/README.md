@@ -16,6 +16,15 @@ $ curl -s https://get.docker.com/ -o- | sudo bash
 Note that the proxy server must run with `CAP_NET_ADMIN`, so you will have to
 either install Docker rootfully (the default), or run Docker as root.
 
+To reduce the number of times you will have to run `sudo`, you may want to run
+
+```
+$ sudo usermod -aG docker $(whoami)
+```
+
+to add yourself to the `docker` group. Log yourself out of the VM and then log
+back in, and you will be able to run Docker commands as a non-root user.
+
 After setting up Docker, you should build the container images used for testing
 with
 
