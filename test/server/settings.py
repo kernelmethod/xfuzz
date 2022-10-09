@@ -1,49 +1,12 @@
 # Settings for the test server.
 
 import random
-import hashlib
-import hmac
 import os
 import secrets
 import xfuzz._typing as _t
 from pydantic import BaseSettings, Field
 from test.wordlists import get_common, get_subdomains
-
-
-def hkdf(
-    ikm: bytes,
-    info: bytes,
-    salt: _t.Optional[bytes] = None,
-    length: int = 32,
-    hash=hashlib.sha256,
-) -> bytes:
-    """Use the Hash-Based Key Derivation Function (HKDF) to generate a new
-    domain-specific cryptographically secure random key.
-
-    Sources:
-    - IETF RFC 5869: https://www.rfc-editor.org/rfc/rfc5869
-    - "Cryptographic Extraction and Key Derivation: The HKDF Scheme" (Kraczyk 2010)
-    """
-
-    salt = salt.encode("utf-8") if salt is not None else b"\x00" * length
-    hmac_hash = lambda key, msg: hmac.new(key, msg, hash).digest()
-
-    # Create an instantion of the hash function to determine what the length of
-    # its generated hashes is
-    hash_length = len(hash(b"").digest())
-
-    # Extract (§2.2)
-    prk = hmac_hash(salt, ikm)
-
-    # Expand (§2.3)
-    N = (length - 1) // hash_length + 1
-    okm = T = b""
-    for i in range(N):
-        msg = T + info + ((i + 1) % 256).to_bytes(1, "big")
-        T = hmac_hash(prk, msg)
-        okm += T
-
-    return okm[:length]
+from test.utils import hkdf
 
 
 def generate_key() -> str:
