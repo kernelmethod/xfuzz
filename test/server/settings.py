@@ -6,34 +6,43 @@ import hmac
 import os
 import secrets
 import xfuzz._typing as _t
-from math import ceil
 from pydantic import BaseSettings, Field
 from test.wordlists import get_common, get_subdomains
 
 
-hash_len: int = 32
+def hkdf(
+    ikm: bytes,
+    info: bytes,
+    salt: _t.Optional[bytes] = None,
+    length: int = 32,
+    hash=hashlib.sha256,
+) -> bytes:
+    """Use the Hash-Based Key Derivation Function (HKDF) to generate a new
+    domain-specific cryptographically secure random key.
 
+    Sources:
+    - IETF RFC 5869: https://www.rfc-editor.org/rfc/rfc5869
+    - "Cryptographic Extraction and Key Derivation: The HKDF Scheme" (Kraczyk 2010)
+    """
 
-def hmac_sha256(key: bytes, data: bytes):
-    return hmac.new(key, data, hashlib.sha256).digest()
+    salt = salt.encode("utf-8") if salt is not None else b"\x00" * length
+    hmac_hash = lambda key, msg: hmac.new(key, msg, hash).digest()
 
+    # Create an instantion of the hash function to determine what the length of
+    # its generated hashes is
+    hash_length = len(hash(b"").digest())
 
-def hkdf(key: str, info: str, salt: str = "", length: int = 32) -> bytes:
-    """Key derivation function"""
+    # Extract (§2.2)
+    prk = hmac_hash(salt, ikm)
 
-    if len(salt) == 0:
-        salt = bytes([0] * length)
-    else:
-        salt = salt.encode("utf-8")
+    # Expand (§2.3)
+    N = (length - 1) // hash_length + 1
+    okm = T = b""
+    for i in range(N):
+        msg = T + info + ((i + 1) % 256).to_bytes(1, "big")
+        T = hmac_hash(prk, msg)
+        okm += T
 
-    prk = hmac_sha256(salt, key.encode("utf-8"))
-    t = b""
-    okm = b""
-    info = info.encode("utf-8")
-
-    for i in range(ceil(length / hash_len)):
-        t = hmac_sha256(prk, t + info + bytes([i + 1]))
-        okm += t
     return okm[:length]
 
 
@@ -64,7 +73,7 @@ class Settings(BaseSettings):
     key: str = Field(default_factory=generate_key)
 
     def create_token(self, msg: str) -> bytes:
-        return hkdf(self.key, msg)
+        return hkdf(self.key.encode("utf-8"), msg.encode("utf-8"))
 
     def create_token_int(self, msg: str) -> int:
         return int.from_bytes(self.create_token(msg), "little")
