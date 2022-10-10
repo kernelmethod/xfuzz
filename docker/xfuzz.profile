@@ -21,12 +21,13 @@ profile xfuzz flags=(attach_disconnected,mediate_deleted) {
 
   # xfuzz code. Writing to this directory is permitted except to configuration
   # and testing files.
-  /opt/xfuzz/{,**} rwix,
-  deny /opt/xfuzz/tox.ini w,
-  deny /opt/xfuzz/MANIFEST.in w,
-  deny /opt/xfuzz/pyproject.toml w,
-  deny /opt/xfuzz/setup.py w,
-  deny /opt/xfuzz/test/{,**} w,
+  /opt/xfuzz/{,**} rix,
+  /opt/xfuzz/** wlk,
+  deny /opt/xfuzz/tox.ini wl,
+  deny /opt/xfuzz/MANIFEST.in wl,
+  deny /opt/xfuzz/pyproject.toml wl,
+  deny /opt/xfuzz/setup.py wl,
+  deny /opt/xfuzz/test/{,**} wl,
 
   # Inherit profile during execution
   /bin/{*,**} rix,
