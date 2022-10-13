@@ -10,6 +10,9 @@
 profile xfuzz flags=(attach_disconnected,mediate_deleted) {
   #include <abstractions/base>
 
+  # Allow network access
+  network,
+
   /dev/tty rw,
   /dev/pts/* rw,
   /etc/{*,**} r,
