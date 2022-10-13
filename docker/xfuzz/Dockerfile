@@ -11,7 +11,7 @@ WORKDIR /opt/xfuzz
 COPY --chown=xfuzz:xfuzz dev.requirements.txt .
 COPY --chown=xfuzz:xfuzz requirements.txt .
 
-RUN apk add --no-cache bash && \
+RUN apk add --no-cache bash curl && \
     apk add --no-cache --virtual build-deps build-base musl-dev && \
     python3 -m pip install --no-cache-dir -r dev.requirements.txt && \
     apk del build-deps

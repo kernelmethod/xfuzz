@@ -42,13 +42,14 @@ code sandboxed. You can enable them with
 $ sudo apparmor_parser -r ./xfuzz.profile
 ```
 
-If your system does not support AppArmor (e.g. if you're running your tests on
-Fedora, CentOS, or RHEL), you can disable the use of AppArmor profiles for these
-tests with
+The use of the custom AppArmor profile is disabled by default. If you wish to
+enable it, you can run
 
 ```
-$ export XFUZZ_USE_APPARMOR=0
+$ export XFUZZ_USE_APPARMOR=1
 ```
+
+To disable it again, you can run `export XFUZZ_USE_APPARMOR=0`.
 
 ## Running unit tests
 

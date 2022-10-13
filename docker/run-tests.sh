@@ -35,5 +35,5 @@ if [ ! $# -eq 1 ]; then
     usage
 fi
 
-USE_APPARMOR="${XFUZZ_USE_APPARMOR:-1}"
+USE_APPARMOR="${XFUZZ_USE_APPARMOR:-0}"
 main "$1"
