@@ -7,6 +7,3 @@ virtualenv
 *__pycache__
 *.egg-info
 *.pytest_cache
-
-# Files for example solution
-xfuzz/solution*
